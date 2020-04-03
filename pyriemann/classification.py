@@ -433,6 +433,107 @@ class TSclassifier(BaseEstimator, ClassifierMixin):
         return self._pipe.predict_proba(X)
 
 
+
+
+
+
+class TSC_PCA(BaseEstimator, ClassifierMixin):
+
+    """Dimensionality reduction in the tangent space and classification
+
+    Project data in the tangent space and apply PCA and a classifier on 
+    the projected data.
+
+    Parameters
+    ----------
+    metric : string | dict (default: 'riemann')
+        The type of metric used for centroid and distance estimation.
+        see `mean_covariance` for the list of supported metric.
+        the metric could be a dict with two keys, `mean` and `distance` in
+        order to pass different metric for the centroid estimation and the
+        distance estimation. Typical usecase is to pass 'logeuclid' metric for
+        the mean in order to boost the computional speed and 'riemann' for the
+        distance in order to keep the good sensitivity for the classification.
+    tsupdate : bool (default False)
+        Activate tangent space update for covariante shift correction between
+        training and test, as described in [2]. This is not compatible with
+        online implementation. Performance are better when the number of trials
+        for prediction is higher.
+    clf: sklearn classifier (default LogisticRegression)
+        The classifier to apply in the tangent space
+
+    See Also
+    --------
+    TangentSpace
+
+    Notes
+    -----
+    .. versionadded:: 0.2.4
+    """
+
+    def __init__(self, metric='riemann', tsupdate=False,
+                 clf=LogisticRegression()):
+        """Init."""
+        self.metric = metric
+        self.tsupdate = tsupdate
+        self.clf = clf
+
+        if not isinstance(clf, ClassifierMixin):
+            raise TypeError('clf must be a ClassifierMixin')
+
+            
+    def fit(self, X, y):
+        """Fit TSclassifier.
+
+        Parameters
+        ----------
+        X : ndarray, shape (n_trials, n_channels, n_channels)
+            ndarray of SPD matrices.
+        y : ndarray shape (n_trials, 1)
+            labels corresponding to each trial.
+
+        Returns
+        -------
+        self : TSclassifier. instance
+            The TSclassifier. instance.
+        """
+        pca = PCA(n_components='mle',svd_solver='full')
+        ts = TangentSpace(metric=self.metric, tsupdate=self.tsupdate)
+        self._pipe = make_pipeline(ts, pca, self.clf)
+        self._pipe.fit(X, y)
+        return self
+
+    def predict(self, X):
+        """get the predictions.
+
+        Parameters
+        ----------
+        X : ndarray, shape (n_trials, n_channels, n_channels)
+            ndarray of SPD matrices.
+
+        Returns
+        -------
+        pred : ndarray of int, shape (n_trials, 1)
+            the prediction for each trials according to the closest centroid.
+        """
+        return self._pipe.predict(X)
+
+    def predict_proba(self, X):
+        """get the probability.
+
+        Parameters
+        ----------
+        X : ndarray, shape (n_trials, n_channels, n_channels)
+            ndarray of SPD matrices.
+
+        Returns
+        -------
+        pred : ndarray of ifloat, shape (n_trials, n_classes)
+            the prediction for each trials according to the closest centroid.
+        """
+        return self._pipe.predict_proba(X)
+
+
 class KNearestNeighbor(MDM):
 
     """Classification by K-NearestNeighbor.
