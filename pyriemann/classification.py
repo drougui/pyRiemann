@@ -447,6 +447,7 @@ class TSC_PCA(BaseEstimator, ClassifierMixin):
 
     Parameters
     ----------
+    n_comp : nb of components
     metric : string | dict (default: 'riemann')
         The type of metric used for centroid and distance estimation.
         see `mean_covariance` for the list of supported metric.
@@ -472,9 +473,10 @@ class TSC_PCA(BaseEstimator, ClassifierMixin):
     .. versionadded:: 0.2.4
     """
 
-    def __init__(self, metric='riemann', tsupdate=False,
+    def __init__(self, n_comp=None, metric='riemann', tsupdate=False,
                  clf=LogisticRegression()):
         """Init."""
+        self.n_comp = n_comp
         self.metric = metric
         self.tsupdate = tsupdate
         self.clf = clf
@@ -498,7 +500,7 @@ class TSC_PCA(BaseEstimator, ClassifierMixin):
         self : TSclassifier. instance
             The TSclassifier. instance.
         """
-        pca = PCA(n_components='mle',svd_solver='full')
+        pca = PCA(n_components=n_comp)
         ts = TangentSpace(metric=self.metric, tsupdate=self.tsupdate)
         self._pipe = make_pipeline(ts, pca, self.clf)
         self._pipe.fit(X, y)
