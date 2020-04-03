@@ -500,7 +500,7 @@ class TSC_PCA(BaseEstimator, ClassifierMixin):
         self : TSclassifier. instance
             The TSclassifier. instance.
         """
-        pca = PCA(n_components=n_comp)
+        pca = PCA(n_components=self.n_comp)
         ts = TangentSpace(metric=self.metric, tsupdate=self.tsupdate)
         self._pipe = make_pipeline(ts, pca, self.clf)
         self._pipe.fit(X, y)
