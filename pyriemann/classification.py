@@ -7,6 +7,7 @@ from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin
 from sklearn.utils.extmath import softmax
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
+from sklearn.decomposition import PCA
 from joblib import Parallel, delayed
 
 from .utils.mean import mean_covariance
